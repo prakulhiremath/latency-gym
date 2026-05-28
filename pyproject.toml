@@ -1,0 +1,85 @@
+[build-system]
+requires = ["scikit-build-core", "pybind11"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "latency-gym"
+version = "0.1.0"
+description = "High-performance HFT latency simulator for Gymnasium environments"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Latency Gym Contributors", email = "dev@latency-gym.io"}
+]
+keywords = [
+    "hft",
+    "high-frequency-trading",
+    "latency",
+    "simulation",
+    "gymnasium",
+    "reinforcement-learning"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Office/Business :: Financial :: Trading"
+]
+dependencies = [
+    "gymnasium>=0.27.0",
+    "numpy>=1.21.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "black>=22.0",
+    "ruff>=0.1.0",
+    "mypy>=0.990",
+    "sphinx>=5.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/latency-gym/latency-gym"
+Documentation = "https://latency-gym.readthedocs.io"
+Repository = "https://github.com/latency-gym/latency-gym"
+Issues = "https://github.com/latency-gym/latency-gym/issues"
+
+[tool.scikit-build]
+cmake.minimum-version = "3.15"
+cmake.build-type = "Release"
+wheel.packages = ["latency_gym"]
+
+[tool.scikit-build.cmake.define]
+CMAKE_CXX_STANDARD = "20"
+CMAKE_CXX_STANDARD_REQUIRED = "ON"
+
+[tool.black]
+line-length = 100
+target-version = ['py38']
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+select = ["E", "F", "W", "I"]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
