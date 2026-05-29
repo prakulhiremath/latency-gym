@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software in your research, please cite it as below."
+authors:
+  - family-names: "Hiremath"
+    given-names: "Prakul Sunil"
+    affiliation: "Aliens on Earth (AoE)"
+title: "latency-gym: An RL Environment for Low-Latency Systems Optimization"
+version: "0.1.0"
+date-released: 2026-05-29
+repository-code: "https://github.com/prakulhiremath/latency-gym"
+keywords:
+  - reinforcement learning
+  - high frequency trading
+  - low latency
+  - computer architecture
+  - gymnasium
