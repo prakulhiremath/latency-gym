@@ -10,6 +10,7 @@ A production-grade, open-source Gymnasium environment for optimizing high-freque
 ## Overview
 
 Latency Gym simulates the critical performance bottlenecks of HFT order matching systems:
+
 - **Network queue dynamics** with ring-buffer allocations
 - **Packet loss and buffer overflows** under bursty traffic
 - **Nanosecond-precision latency tracking** across orders
@@ -39,9 +40,10 @@ Latency Gym allows RL agents to **discover optimal configurations under varying 
 
 ### Action Space
 
-Discrete choice of three parameters:
-
-$$\mathbf{a}_t = (\text{batch_size}, \text{polling_rate}, \text{prealloc_pool}) \in [1,64] \times [1,10] \times [1,5]$$
+Discrete choice of three parameters across the following ranges:
+- Batch Size: 1 to 64
+- Polling Rate: 1 to 10
+- Pre-allocation Pool: 1 to 5
 
 Encoded as `MultiDiscrete([64, 10, 5])` in Gymnasium.
 
@@ -49,30 +51,27 @@ Encoded as `MultiDiscrete([64, 10, 5])` in Gymnasium.
 
 Four continuous metrics tracking system state:
 
-$$\mathbf{s}_t = \begin{bmatrix} \text{queue_depth} \\ \text{mean_latency\_ns} \\ \text{latency\_variance} \\ \text{packet\_drops} \end{bmatrix}$$
-
-**Definitions:**
-- **queue_depth**: Current number of unmatched orders (0-4096)
-- **mean_latency_ns**: Average latency in nanoseconds (0-1e9)
-- **latency_variance**: σ² over 1000-order sliding window (0-1e18)
-- **packet_drops**: Cumulative overflows (0-1e9)
+1. **queue_depth**: Current number of unmatched orders (0-4096)
+2. **mean_latency_ns**: Average latency in nanoseconds (0-1e9)
+3. **latency_variance**: Variance over 1000-order sliding window (0-1e18)
+4. **packet_drops**: Cumulative overflows (0-1e9)
 
 ### Reward Function: Tail Latency Penalty
 
 The core innovation: explicitly penalize **tail latencies and variance**, not just mean.
 
-$$R_t = -\left( \alpha \cdot \mathbb{E}[\text{Latency}_t] + \beta \cdot \sigma^2(\text{Latency}_t) + \gamma \cdot \text{Drops}_t \right)$$
+**Reward = -(alpha × mean_latency + beta × variance + gamma × drops)**
 
 **Hyperparameters** (defaults):
-- α = 1.0 — Weight on mean latency
-- β = 0.5 — Weight on variance (tail risk)
-- γ = 2.0 — Weight on packet drops (catastrophic failures)
+- alpha = 1.0 — Weight on mean latency
+- beta = 0.5 — Weight on variance (tail risk)
+- gamma = 2.0 — Weight on packet drops (catastrophic failures)
 
 **Why variance matters:** Two systems with identical mean latencies differ drastically if one has p99=150µs and the other p99=5ms.
 
 ## System Architecture
 
-### C++ Simulator (`include/latency_gym/engine.hpp`)
+### C++ Simulator
 
 High-performance components:
 
@@ -86,9 +85,9 @@ High-performance components:
 - No dynamic allocation in hot loop
 - Vectorized percentile computation
 - Nanosecond arithmetic with integer math
-- `-O3 -march=native` compilation flags
+- Compiled with `-O3 -march=native` flags
 
-### Python Gymnasium Wrapper (`latency_gym/envs/hft_env.py`)
+### Python Gymnasium Wrapper
 
 Clean interface to C++ via Pybind11:
 
@@ -108,7 +107,7 @@ for step in range(1000):
 ### From Source
 
 ```bash
-git clone https://github.com/latency-gym/latency-gym.git
+git clone https://github.com/prakulhiremath/latency-gym.git
 cd latency-gym
 
 pip install -e .
@@ -139,7 +138,7 @@ import numpy as np
 env = gym.make("hft-latency-v0")
 obs, info = env.reset(seed=42)
 
-action = np.array([3, 4, 1])  # batch_size=4, polling_rate=5, prealloc_pool=2
+action = np.array([3, 4, 1])
 obs, reward, terminated, truncated, info = env.step(action)
 
 print(f"Reward: {reward:.4f}")
@@ -180,16 +179,14 @@ print(f"p99 latency: {state['p99_latency_ns']:.0f} ns")
 print(f"p99.9 latency: {state['p999_latency_ns']:.0f} ns")
 ```
 
-### RL Agent Training (with Stable-Baselines3)
+### RL Agent Training with Stable-Baselines3
 
 ```python
 import gymnasium as gym
 from stable_baselines3 import PPO
-
-env = gym.make("hft-latency-v0")
-
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 
+env = gym.make("hft-latency-v0")
 env = DummyVecEnv([lambda: gym.make("hft-latency-v0")])
 env = VecNormalize(env, norm_obs=True, norm_reward=True)
 
@@ -201,40 +198,40 @@ model.learn(total_timesteps=100_000)
 
 ```
 latency-gym/
-├── CMakeLists.txt              # Modern CMake (C++20, pybind11, -O3)
-├── pyproject.toml              # PEP 517 + scikit-build-core config
-├── README.md                   # This file
+├── CMakeLists.txt
+├── pyproject.toml
+├── README.md
 ├── assets/
-│   └── latency_gym_training.gif # RL training animation
+│   └── latency_gym_training.gif
 ├── include/
 │   └── latency_gym/
-│       └── engine.hpp          # C++20 high-performance simulator
+│       └── engine.hpp
 ├── src/
-│   └── bindings.cpp            # Pybind11 Python bindings
+│   └── bindings.cpp
 ├── latency_gym/
-│   ├── __init__.py             # Gymnasium registration
+│   ├── __init__.py
 │   └── envs/
 │       ├── __init__.py
-│       └── hft_env.py          # Gymnasium wrapper
+│       └── hft_env.py
 └── tests/
     ├── __init__.py
-    └── test_env.py             # Comprehensive pytest suite
+    └── test_env.py
 ```
 
 ## Performance Characteristics
 
 ### Simulation Speed
 
-- **Single step**: ~100 µs on modern CPU
-- **1000 steps**: ~100 ms
-- **1M steps**: ~100 seconds
-- **Zero Python overhead** during step (C++ compiled loop)
+- Single step: ~100 µs on modern CPU
+- 1000 steps: ~100 ms
+- 1M steps: ~100 seconds
+- Zero Python overhead during step (C++ compiled loop)
 
 ### Memory Footprint
 
-- **Base environment**: ~2 MB
-- **Per-step allocation**: 0 bytes (pre-allocated ring buffer)
-- **Scales to**: 1B+ order matches without reallocation
+- Base environment: ~2 MB
+- Per-step allocation: 0 bytes (pre-allocated ring buffer)
+- Scales to: 1B+ order matches without reallocation
 
 ## Testing
 
@@ -246,16 +243,16 @@ pytest tests/test_env.py -v
 ```
 
 **Test Coverage:**
-- ✅ Environment initialization, reset, step
-- ✅ Action/observation space compliance
-- ✅ Reward computation and bounds
-- ✅ Memory safety (no leaks/segfaults) over 1000+ steps
-- ✅ Numerical stability (no NaN/Inf)
-- ✅ Gymnasium integration (`gym.make`)
-- ✅ Random agent baseline
-- ✅ C++ simulator directly
+- Environment initialization, reset, step
+- Action/observation space compliance
+- Reward computation and bounds
+- Memory safety (no leaks/segfaults) over 1000+ steps
+- Numerical stability (no NaN/Inf)
+- Gymnasium integration
+- Random agent baseline
+- C++ simulator directly
 
-**Test count**: 50+ tests, all deterministic
+**Test count:** 50+ tests, all deterministic
 
 ## Implementation Details
 
@@ -285,8 +282,8 @@ reward = -(mean_penalty + variance_penalty + drop_penalty);
 
 When the buffer is full:
 1. New orders are dropped
-2. `packet_drops` counter increments
-3. Reward penalty applied via `γ * drops` term
+2. Packet drops counter increments
+3. Reward penalty applied via gamma term
 4. Agent learns to keep queue lower
 
 ## Contributing
@@ -308,11 +305,11 @@ MIT License — See LICENSE file for full text.
 If you use Latency Gym in research:
 
 ```bibtex
-@software{latency_gym_2024,
+@software{latency_gym_2026,
   title={Latency Gym: High-Performance HFT Matching Engine Latency Optimizer},
   author={Prakul S. Hiremath},
-  year={2024},
-  url={[https://github.com/YOUR-USERNAME/latency-gym](https://github.com/prakulhiremath/latency-gym)}
+  year={2026},
+  url={https://github.com/prakulhiremath/latency-gym}
 }
 ```
 
