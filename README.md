@@ -25,6 +25,16 @@ In high-frequency trading, microseconds cost millions. A trader's competitive ed
 
 Latency Gym allows RL agents to **discover optimal configurations under varying market conditions**, accounting for both **mean latency and tail risk** (p99/p99.9 latencies).
 
+---
+
+## Training Animation
+
+![RL Agent Training Progress](assets/latency_gym_training.gif)
+
+**Above:** 500-step training animation showing an RL agent learning to optimize P99 tail latency, cumulative reward, and queue management compared to random baseline. The green fill shows cumulative improvement across all metrics.
+
+---
+
 ## Mathematical Foundation
 
 ### Action Space
@@ -194,6 +204,8 @@ latency-gym/
 ├── CMakeLists.txt              # Modern CMake (C++20, pybind11, -O3)
 ├── pyproject.toml              # PEP 517 + scikit-build-core config
 ├── README.md                   # This file
+├── assets/
+│   └── latency_gym_training.gif # RL training animation
 ├── include/
 │   └── latency_gym/
 │       └── engine.hpp          # C++20 high-performance simulator
@@ -298,9 +310,9 @@ If you use Latency Gym in research:
 ```bibtex
 @software{latency_gym_2024,
   title={Latency Gym: High-Performance HFT Matching Engine Latency Optimizer},
-  author={Latency Gym Contributors},
+  author={Prakul S. Hiremath},
   year={2024},
-  url={https://github.com/latency-gym/latency-gym}
+  url={[https://github.com/YOUR-USERNAME/latency-gym](https://github.com/prakulhiremath/latency-gym)}
 }
 ```
 
