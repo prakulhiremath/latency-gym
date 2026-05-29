@@ -4,6 +4,7 @@
 [![C++20](https://img.shields.io/badge/C%2B%2B-20-green)](https://en.cppreference.com/w/cpp/20)
 [![Gymnasium](https://img.shields.io/badge/Gymnasium-0.27%2B-orange)](https://gymnasium.farama.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![DOI](https://zenodo.org/badge/1252664720.svg)](https://doi.org/10.5281/zenodo.20440387)
 
 A production-grade, open-source Gymnasium environment for optimizing high-frequency trading (HFT) matching engine latencies through reinforcement learning. Written in **C++20 with zero Python overhead** during simulation, bound to Python via **Pybind11**, and packaged with modern **PEP 517/scikit-build-core** standards.
 
