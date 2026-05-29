@@ -5,6 +5,7 @@
 [![Gymnasium](https://img.shields.io/badge/Gymnasium-0.27%2B-orange)](https://gymnasium.farama.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20440387-blue.svg)](https://doi.org/10.5281/zenodo.20440387)
+[![Medium](https://img.shields.io/badge/Medium-Read%20Article-black?logo=medium)](https://medium.com/@prakulhiremath/when-microseconds-cost-millions-how-ai-rewrites-the-rules-of-hft-infrastructure-optimization-4e15c3037010)
 
 A production-grade, open-source Gymnasium environment for optimizing high-frequency trading (HFT) matching engine latencies through reinforcement learning. Written in **C++20 with zero Python overhead** during simulation, bound to Python via **Pybind11**, and packaged with modern **PEP 517/scikit-build-core** standards.
 
