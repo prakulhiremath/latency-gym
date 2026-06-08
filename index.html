@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Latency Gym — HFT Matching Engine Latency Optimizer</title>
+    <meta name="description" content="Production-grade Gymnasium environment for optimizing HFT matching engine latencies through reinforcement learning. C++20 simulator with zero Python overhead.">
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- MathJax for LaTeX rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <!-- Syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    
+    <style>
+        :root {
+            --accent: #0284c7;
+            --accent-light: #38bdf8;
+            --accent-dark: #0369a1;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        html { scroll-behavior: smooth; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif; }
+        .font-display { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; letter-spacing: -0.02em; }
+
+        .math-block {
+            background: #f8fafc;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border-left: 3px solid var(--accent);
+        }
+
+        .code-block {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        .code-block code { color: #e2e8f0; }
+        .hljs-string { color: #86efac !important; }
+        .hljs-number { color: #fbbf24 !important; }
+        .hljs-literal { color: #818cf8 !important; }
+        .hljs-attr { color: #60a5fa !important; }
+        .hljs-title { color: #38bdf8 !important; }
+        .hljs-comment { color: #64748b !important; }
+
+        .architecture-diagram {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            color: #475569;
+            margin: 2rem 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+        }
+
+        thead { background: #f8fafc; }
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            color: #475569;
+        }
+        tr:hover { background: #f8fafc; }
+
+        .badge {
+            display: inline-block;
+            padding: 0.375rem 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: #475569;
+            transition: all 0.2s ease;
+        }
+
+        .badge:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(2, 132, 199, 0.05);
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, rgba(2, 132, 199, 0.05) 0%, rgba(56, 189, 248, 0.05) 100%);
+            border: 1px solid #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border-left: 3px solid var(--accent);
+        }
+
+        .metric-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.375rem;
+            text-align: center;
+            border-top: 3px solid var(--accent);
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+            font-family: 'Courier New', monospace;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: #475569;
+            margin-top: 0.5rem;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            padding: 6rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .hero-accent { color: var(--accent); }
+        .section { padding: 4rem 0; }
+        .section h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.01em;
+        }
+
+        .section h3 {
+            font-size: 1.375rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .section p {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: #475569;
+            margin-bottom: 1rem;
+        }
+
+        .section ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .section li {
+            color: #475569;
+            margin-bottom: 0.5rem;
+            line-height: 1.7;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--accent);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            border: 1px solid var(--accent);
+        }
+
+        .btn:hover {
+            background: var(--accent-dark);
+            border-color: var(--accent-dark);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--accent);
+        }
+
+        .btn-outline:hover {
+            background: rgba(2, 132, 199, 0.1);
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+            margin: 4rem 0;
+        }
+
+        .info-box {
+            background: #f0f9ff;
+            border-left: 3px solid var(--accent);
+            padding: 1.5rem;
+            border-radius: 0.375rem;
+            margin: 2rem 0;
+        }
+
+        .info-box strong { color: var(--accent); }
+        .gradient-text {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-900">
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="max-w-6xl mx-auto px-6 sm:px-8">
+            <div class="flex flex-wrap gap-2 mb-8">
+                <span class="badge">⚡ HFT Optimization</span>
+                <span class="badge">🏛️ Gymnasium Environment</span>
+                <a href="https://doi.org/10.5281/zenodo.20440387" class="badge" target="_blank" rel="noopener">🔬 Zenodo</a>
+                <a href="https://medium.com/@prakulhiremath/when-microseconds-cost-millions-how-ai-rewrites-the-rules-of-hft-infrastructure-optimization-4e15c3037010" class="badge" target="_blank" rel="noopener">✍️ Medium</a>
+                <span class="badge">🦀 C++20</span>
+                <span class="badge">🐍 Python 3.8+</span>
+            </div>
+
+            <div class="max-w-3xl">
+                <h1 class="text-5xl sm:text-6xl font-display font-bold mb-4 text-slate-900">Latency Gym</h1>
+                <p class="text-xl text-slate-600 mb-2 font-display font-semibold">High-Performance HFT Matching Engine Latency Optimizer</p>
+                <p class="text-2xl font-display font-semibold mb-8">
+                    <span class="text-slate-700">When microseconds cost</span>
+                    <span class="hero-accent"> millions</span>
+                </p>
+                <p class="text-lg text-slate-600 mb-8 max-w-2xl leading-relaxed">
+                    Production-grade Gymnasium environment for optimizing high-frequency trading matching engine latencies through reinforcement learning. C++20 simulator with zero Python overhead during simulation, bound via Pybind11.
+                </p>
+
+                <div class="flex flex-wrap gap-4">
+                    <a href="#installation" class="btn">Install Now</a>
+                    <a href="#architecture" class="btn btn-outline">Learn Architecture →</a>
+                </div>
+
+                <p class="text-sm text-slate-500 mt-6 italic">100 µs per step. Zero dynamic allocation. Nanosecond precision.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Problem -->
+    <div class="max-w-6xl mx-auto px-6 sm:px-8 section">
+        <div class="bg-slate-50 border-l-4 border-blue-600 p-8 rounded-sm">
+            <p class="text-lg text-slate-800 font-semibold mb-4">"In high-frequency trading, every microsecond of latency is quantifiable profit loss."</p>
+            <p class="text-slate-700 leading-relaxed">A trader's competitive edge depends on tuning three critical parameters: batch size, polling rate, and memory pre-allocation strategy. But these aren't static—optimal configurations change with market conditions. Manual tuning is impossible. Latency Gym lets RL agents discover optimal configurations automatically, accounting for both mean latency and tail risk (p99/p99.9).</p>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- The Optimization Problem -->
+    <div class="max-w-6xl mx-auto px-6 sm:px-8 section" id="architecture">
+        <h2>The Optimization Problem</h2>
+
+        <p>HFT matching engines operate under extreme constraints. Three parameters control the entire system's latency profile:</p>
+
+        <h3>Decision Variables</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Range</th>
+                    <th>Meaning</th>
+                    <th>Trade-off</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Batch Size</strong></td>
+                    <td>1–64</td>
+                    <td>Orders matched per polling cycle</td>
+                    <td>Larger = lower latency but higher variance</td>
+                </tr>
+                <tr>
+                    <td><strong>Polling Rate</strong></td>
+                    <td>1–10</td>
+                    <td>Divisor (1/x checks per cycle)</td>
+                    <td>Faster = lower latency, higher CPU</td>
+                </tr>
+                <tr>
+                    <td><strong>Pre-alloc Pool</strong></td>
+                    <td>1–5</td>
+                    <td>Memory pre-allocation levels</td>
+                    <td>Higher = faster allocation, more memory</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Observation Space: System State</h3>
+
+        <div class="math-block">
+            $$\text{Observation} = [\text{queue\_depth}, \text{mean\_latency\_ns}, \text{variance}, \text{drops}]$$
+        </div>
+
+        <ul class="space-y-2 text-slate-700">
+            <li><code>queue_depth</code> — Current unmatched orders (0–4096)</li>
+            <li><code>mean_latency_ns</code> — Average latency in nanoseconds (0–1e9)</li>
+            <li><code>variance</code> — Sliding 1000-order window (0–1e18)</li>
+            <li><code>drops</code> — Cumulative buffer overflows (0–1e9)</li>
+        </ul>
+
+        <h3>Reward Function: Tail Latency Penalty</h3>
+
+        <p>The core innovation: explicitly penalize <strong>tail latencies and variance</strong>, not just mean.</p>
+
+        <div class="math-block">
+            $$R = -(\alpha \cdot \text{mean\_latency} + \beta \cdot \text{variance} + \gamma \cdot \text{drops})$$
+        </div>
+
+        <div class="info-box">
+            <p><strong>Why variance matters:</strong> Two systems with identical mean latencies differ drastically if one has p99=150µs and the other p99=5ms. The reward function explicitly captures this asymmetry.</p>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Architecture -->
+    <div class="max-w-6xl mx-auto px-6 sm:px-8 section">
+        <h2>System Architecture</h2>
+
+        <h3>C++ High-Performance Simulator</h3>
+
+        <div class="architecture-diagram">
+<pre>┌────────────────────────────────────────────────────────────┐
+│            Latency Gym Simulator (C++20)                   │
+├────────────────────────────────────────────────────────────┤
+│                                                            │
+│ TimeCounter         — Nanosecond-precision timestamps     │
+│ Order (48 bytes)    — Lightweight order struct            │
+│ OrderRingBuffer     — Fixed-capacity, zero-copy          │
+│ LatencyStatsWindow  — Rolling O(1) percentile tracking   │
+│ LatencySimulator    — Discrete-event loop                │
+│                                                            │
+│ Compiled with:      -O3 -march=native                    │
+│ Per-step cost:      ~100 µs on modern CPU                │
+│ Memory allocation:  Zero in hot loop                     │
+│                                                            │
+└────────────────────────────────────────────────────────────┘</pre>
+        </div>
+
+        <h3>Gymnasium Integration</h3>
+
+        <p>Clean Python interface via Pybind11:</p>
+
+        <div class="code-block mb-8"><pre><code class="language-python">import gymnasium as gym
+
+env = gym.make("hft-latency-v0")
+obs, info = env.reset()
+
+action = env.action_space.sample()
+obs, reward, terminated, truncated, info = env.step(action)</code></pre></div>
+
+        <h3>Performance Characteristics</h3>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 my-8">
+            <div class="metric-card">
+                <p class="metric-label">Single Step</p>
+                <p class="metric-value">~100µs</p>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">1000 Steps</p>
+                <p class="metric-value">~100ms</p>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">1M Steps</p>
+                <p class="metric-value">~100s</p>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Base Memory</p>
+                <p class="metric-value">~2MB</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Installation -->
+    <div class="max-w-6xl mx-auto px-6 sm:px-8 section" id="installation">
+        <h2>Installation & Setup</h2>
+
+        <h3>Requirements</h3>
+
+        <ul class="space-y-2 text-slate-700">
+            <li><strong>Python 3.8+</strong> — Any recent version</li>
+            <li><strong>CMake 3.15+</strong> — For building C++ extension</li>
+            <li><strong>C++20 compiler</strong> — gcc-9+, clang-10+, or MSVC 2019+</li>
+        </ul>
+
+        <h3>Quick Install</h3>
+
+        <div class="code-block mb-8"><pre><code class="language-bash">git clone https://github.com/prakulhiremath/latency-gym.git
+cd latency-gym
+
+pip install -e .</code></pre></div>
+
+        <h3>Verify Installation</h3>
+
+        <div class="code-block"><pre><code class="language-python">import gymnasium as gym
+
+env = gym.make("hft-latency-v0")
+obs, info = env.reset(seed=42)
+
+print("Observation shape:", obs.shape)
+print("Action space:", env.action_space)</code></pre></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Usage Examples -->
+    <div class="max-w-6xl mx-auto px-6 sm:px-8 section">
+        <h2>Usage Examples</h2>
+
+        <h3>Basic Environment Interaction</h3>
+
+        <div class="code-block mb-8"><pre><code class="language-python">import gymnasium as gym
+import numpy as np
+
+env = gym.make("hft-latency-v0")
+obs, info = env.reset(seed=42)
+
+action = np.array([3, 4, 1])  # batch_size=3, poll_divisor=4, prealloc=1
+obs, reward, terminated, truncated, info = env.step(action)
+
+print(f"Reward: {reward:.4f}")
+print(f"Queue depth: {obs[0]:.1f}")
+print(f"Mean latency (ns): {obs[1]:.0f}")</code></pre></div>
+
+        <h3>Random Agent Baseline</h3>
+
+        <div class="code-block mb-8"><pre><code class="language-python">env = gym.make("hft-latency-v0")
+obs, info = env.reset()
+
+total_reward = 0
+for step in range(1000):
+    action = env.action_space.sample()
+    obs, reward, terminated, truncated, info = env.step(action)
+    total_reward += reward
+    
+    if terminated or truncated:
+        break
+
+print(f"Episode return: {total_reward:.2f}")</code></pre></div>
+
+        <h3>RL Training with Stable-Baselines3</h3>
+
+        <div class="code-block"><pre><code class="language-python">import gymnasium as gym
+from stable_baselines3 import PPO
+from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
+
+env = gym.make("hft-latency-v0")
+env = DummyVecEnv([lambda: gym.make("hft-latency-v0")])
+env = VecNormalize(env, norm_obs=True, norm_reward=True)
+
+model = PPO("MlpPolicy", env, learning_rate=1e-4, verbose=1)
+model.learn(total_timesteps=100_000)</code></pre></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Testing -->
+    <div class="max-w-6xl mx-auto px-6 sm:px-8 section">
+        <h2>Testing & Development</h2>
+
+        <h3>Run Test Suite</h3>
+
+        <div class="code-block mb-8"><pre><code class="language-bash">pip install -e ".[dev]"
+pytest tests/test_env.py -v</code></pre></div>
+
+        <h3>What's Tested</h3>
+
+        <ul class="space-y-2 text-slate-700">
+            <li>Environment initialization, reset, step</li>
+            <li>Action/observation space compliance</li>
+            <li>Reward computation and bounds</li>
+            <li>Memory safety over 1000+ steps</li>
+            <li>Numerical stability (no NaN/Inf)</li>
+            <li>Gymnasium integration</li>
+            <li>Random agent baseline</li>
+        </ul>
+
+        <p class="mt-4 text-sm text-slate-600">50+ deterministic tests, all passing.</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Repository -->
+    <div class="max-w-6xl mx-auto px-6 sm:px-8 section">
+        <h2>Project Structure</h2>
+
+        <div class="architecture-diagram">
+<pre>latency-gym/
+├── CMakeLists.txt
+├── pyproject.toml
+├── README.md
+├── assets/
+│   └── latency_gym_training.gif
+├── include/
+│   └── latency_gym/
+│       └── engine.hpp
+├── src/
+│   └── bindings.cpp
+├── latency_gym/
+│   ├── __init__.py
+│   └── envs/
+│       ├── __init__.py
+│       └── hft_env.py
+└── tests/
+    ├── __init__.py
+    └── test_env.py</pre>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Citation -->
+    <div class="max-w-6xl mx-auto px-6 sm:px-8 section">
+        <h2>Citation</h2>
+
+        <div class="code-block">
+<pre><code>@software{latency_gym_2026,
+  title={Latency Gym: High-Performance HFT 
+         Matching Engine Latency Optimizer},
+  author={Prakul S. Hiremath},
+  year={2026},
+  url={https://github.com/prakulhiremath/latency-gym}
+}</code></pre>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Footer -->
+    <div class="bg-slate-50 border-t border-slate-200 py-12">
+        <div class="max-w-6xl mx-auto px-6 sm:px-8">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-12">
+                <div>
+                    <h4 class="font-semibold text-slate-900 mb-4">Resources</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="https://github.com/prakulhiremath/latency-gym" class="text-blue-600 hover:underline" target="_blank" rel="noopener">GitHub Repository</a></li>
+                        <li><a href="https://doi.org/10.5281/zenodo.20440387" class="text-blue-600 hover:underline" target="_blank" rel="noopener">Zenodo DOI</a></li>
+                        <li><a href="https://gymnasium.farama.org/" class="text-blue-600 hover:underline" target="_blank" rel="noopener">Gymnasium Docs</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-slate-900 mb-4">Learn</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="https://medium.com/@prakulhiremath/when-microseconds-cost-millions-how-ai-rewrites-the-rules-of-hft-infrastructure-optimization-4e15c3037010" class="text-blue-600 hover:underline" target="_blank" rel="noopener">Medium Article</a></li>
+                        <li><a href="#installation" class="text-blue-600 hover:underline">Installation Guide</a></li>
+                        <li><a href="https://github.com/prakulhiremath/latency-gym/issues" class="text-blue-600 hover:underline" target="_blank" rel="noopener">Report Issues</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-slate-900 mb-4">Connect</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="mailto:prakulhiremath03@gmail.com" class="text-blue-600 hover:underline">Email</a></li>
+                        <li><a href="https://github.com/prakulhiremath" class="text-blue-600 hover:underline" target="_blank" rel="noopener">GitHub</a></li>
+                        <li>License: MIT</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-200 pt-8">
+                <p class="text-sm text-slate-600 text-center mb-4">
+                    <strong>Latency Gym</strong> — High-Performance HFT Matching Engine Optimization
+                </p>
+                <p class="text-xs text-slate-500 text-center">
+                    MIT License · Python 3.8+ · C++20 · <a href="https://github.com/prakulhiremath/latency-gym" class="text-blue-600 hover:underline" target="_blank" rel="noopener">Open Source</a>
+                </p>
+                <p class="text-xs text-slate-500 text-center mt-4">
+                    <em>"Built with precision for high-frequency trading simulation."</em>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        document.querySelectorAll('.code-block pre code').forEach((block) => {
+            hljs.highlightElement(block);
+        });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
